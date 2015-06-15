@@ -5,6 +5,7 @@ import net.sumppen.whatsapi4j.events.EventType;
 import net.sumppen.whatsapi4j.message.*;
 import net.sumppen.whatsapi4j.tools.BinHex;
 import net.sumppen.whatsapi4j.tools.CharsetUtils;
+
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +16,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
@@ -76,6 +78,7 @@ public class WhatsApi {
     private MessagePoller poller;
     private String lastSendMsgId;
     private Proxy proxy;
+	private int iqCounter;
 
     public WhatsApi(String username, String identity, String nickname) throws NoSuchAlgorithmException, WhatsAppException {
         writer = new BinTreeNodeWriter();
@@ -520,11 +523,6 @@ public class WhatsApi {
         ProtocolNode node = new ProtocolNode("iq", attr, children, null);
 
         sendNode(node);
-        try {
-            waitForServer(msgID);
-        } catch (Exception e) {
-            throw new WhatsAppException("Error getting groups", e);
-        }
     }
 
     /**
@@ -533,11 +531,37 @@ public class WhatsApi {
      * @throws WhatsAppException
      */
     public void sendGetGroupsInfo(String gjid) throws WhatsAppException {
-        //TODO implement this
-        throw new WhatsAppException("Not yet implemented");
+        String msgId;
+		try {
+			msgId = createIqId();
+		} catch (NoSuchAlgorithmException e) {
+			throw new WhatsAppException("Failed to create IqId",e);
+		}
+
+        Map<String,String> attr = new HashMap<String, String>();
+        attr.put("request", "interactive");
+        ProtocolNode queryNode = new ProtocolNode("query",
+            attr, null, null);
+
+        attr = new HashMap<String, String>();
+        attr.put("id", msgId);
+        attr.put("type", "get");
+        attr.put("xmlns", "w:g2");
+        attr.put("to", getJID(gjid));
+        List<ProtocolNode> nodeList = new LinkedList<ProtocolNode>();
+        nodeList.add(queryNode);
+		ProtocolNode node = new ProtocolNode("iq",
+            attr, nodeList, null);
+
+        sendNode(node);
     }
 
-    /**
+    private String createIqId() throws NoSuchAlgorithmException {
+    	Integer iqId = iqCounter++;
+		return toHex(iqId.toString().getBytes());
+	}
+
+	/**
      * Send a request to return a list of groups user has started
      * in.
      * <p>
@@ -586,7 +610,6 @@ public class WhatsApi {
         ProtocolNode node = new ProtocolNode("iq", map, lista, null);
         try {
             sendNode(node);
-            waitForServer(map.get("id"));
         } catch (Exception e) {
             throw new WhatsAppException("Failed to get profile picture", e);
         }
@@ -664,11 +687,6 @@ public class WhatsApi {
                 params, list, null);
 
         sendNode(node);
-        try {
-            waitForServer(msgId);
-        } catch (Exception e) {
-            throw new WhatsAppException("Failure while waiting for response", e);
-        }
     }
 
     /**
@@ -801,7 +819,6 @@ public class WhatsApi {
         map.put("caption", caption);
         mediaQueue.put(id, map);
         sendNode(node);
-        waitForServer(id);
     }
 
     private String base64_encode(byte[] data) {
@@ -1122,12 +1139,6 @@ public class WhatsApi {
                 nodeMap, nodeList, null);
 
         sendNode(node);
-        try {
-            waitForServer(id);
-        } catch (Exception e) {
-            log.error("Failed to wait for server: " + e.getMessage());
-            throw new WhatsAppException("Failed while waiting for server", e);
-        }
 
         return id;
     }
@@ -1178,11 +1189,6 @@ public class WhatsApi {
                 ProtocolNode node = new ProtocolNode("iq", hash, arr, null);
 
                 sendNode(node);
-                try {
-                    waitForServer(nodeID);
-                } catch (Exception e) {
-                    throw new WhatsAppException("Waiting for reply failed", e);
-                }
             }
         }
     }
@@ -1935,6 +1941,13 @@ public class WhatsApi {
                     event.setEventSpecificData(result);
 
                     eventManager.fireEvent(event);
+                }
+                if(child.getTag().equals(ProtocolTag.GROUP.toString())) {
+                	Event event = new Event(EventType.GET_GROUPINFO, phoneNumber);
+                    event.setData(node.getChildren());
+                    event.setGroupId(child.getAttribute("id"));
+                    eventManager.fireEvent(event);
+
                 }
                 messageQueue.add(node);
             }
