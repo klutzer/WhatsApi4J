@@ -79,6 +79,8 @@ public class WhatsApi {
     private String lastSendMsgId;
     private Proxy proxy;
 	private int iqCounter;
+	private String releaseTime = null;
+	private String releaseToken = null;
 
     public WhatsApi(String username, String identity, String nickname) throws NoSuchAlgorithmException, WhatsAppException {
         writer = new BinTreeNodeWriter();
@@ -261,9 +263,29 @@ public class WhatsApi {
     }
 
     protected String generateRequestToken(String country, String phone) throws IOException, NoSuchAlgorithmException {
-        return WhatsMediaUploader.md5(RELEASE_TOKEN_CONST + RELEASE_TIME + phone);
+        return WhatsMediaUploader.md5(getReleaseToken() + getReleaseTime() + phone);
     }
 
+	public String getReleaseTime() {
+		if(releaseTime != null)
+			return releaseTime;
+		return RELEASE_TIME;
+	}
+	
+	public void setReleaseTime(String time) {
+		this.releaseTime = time;
+	}
+
+	public String getReleaseToken() {
+		if(releaseToken != null)
+			return releaseToken;
+		return RELEASE_TOKEN_CONST;
+	}
+
+	public void setReleaseToken(String token) {
+		this.releaseToken = token;
+	}
+	
     private byte[] hash(String algo, byte[] dataBytes) throws NoSuchAlgorithmException {
         MessageDigest md;
 
