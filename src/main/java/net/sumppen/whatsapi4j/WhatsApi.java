@@ -39,7 +39,7 @@ public class WhatsApi {
     private static final String RELEASE_TOKEN_CONST = "PdA2DJyKoUrwLw1Bg6EIhzh502dF9noR9uFCllGk";
     private static final String RELEASE_TIME = "1431039885607";
     private final int PORT = 443;                                      // The port of the WhatsApp server.
-    private final int TIMEOUT_SEC = 2;                                  // The timeout for the connection with the WhatsApp servers.
+    private final int TIMEOUT_SEC = 10;                                  // The timeout for the connection with the WhatsApp servers.
     private final String WHATSAPP_CHECK_HOST = "v.whatsapp.net/v2/exist";  // The check credentials host.
     public static final String WHATSAPP_GROUP_SERVER = "g.us";                   // The Group server hostname
     private final String WHATSAPP_HOST = "c.whatsapp.net";                 // The hostname of the WhatsApp server.
@@ -1643,7 +1643,6 @@ public class WhatsApi {
         if (readData == null || readData.length == 0) {
             return;
         }
-
 
         ProtocolNode node = reader.nextTree(readData);
         if (node != null) {
