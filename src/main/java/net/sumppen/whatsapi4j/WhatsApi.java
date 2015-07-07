@@ -1299,11 +1299,26 @@ public class WhatsApi {
     /**
      * Send a vCard to the user/group.
      *
+     * @param vCard vCard format
+     *              for example {@link String} with content:
+     *              "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:SomeName\r\nN:;;;;\r\nTEL;type=CELL,voice:11111111111\r\nEND:VCARD\r\n"
+     *
+     * @return String
+     *  Returns message id
      * @throws WhatsAppException
      */
-    public void sendVcard(String to, String name, Object vCard) throws WhatsAppException {
-        //TODO implement this
-        throw new WhatsAppException("Not yet implemented");
+    public String sendVcard(String to, String name, Object vCard) throws WhatsAppException {
+        try {
+            Map<String, String> vCardAttrs = new HashMap<String, String>();
+            vCardAttrs.put("name", name);
+            ProtocolNode vNode = new ProtocolNode("vcard", vCardAttrs, null, CharsetUtils.toBytes(vCard.toString()));
+            Map<String, String> mediaAttrs = new HashMap<String, String>();
+            mediaAttrs.put("type", "vcard");
+            ProtocolNode mediaNode = new ProtocolNode("media", mediaAttrs, Arrays.asList(vNode), null);
+            return sendMessageNode(to, mediaNode, null);
+        } catch (Exception e) {
+            throw new WhatsAppException("Failed to send vCard", e);
+        }
     }
 
     /**
