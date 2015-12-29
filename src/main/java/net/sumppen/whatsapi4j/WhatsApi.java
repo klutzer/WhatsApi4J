@@ -46,9 +46,9 @@ public class WhatsApi {
     private final String WHATSAPP_REGISTER_HOST = "v.whatsapp.net/v2/register"; // The register code host.
     private final String WHATSAPP_REQUEST_HOST = "v.whatsapp.net/v2/code";      // The request code host.
     public static final String WHATSAPP_SERVER = "s.whatsapp.net";               // The hostname used to login/send messages.
-    private final String WHATSAPP_DEVICE = "S40";                      // The device name.
-    private final String WHATSAPP_VER = "2.13.21";                // The WhatsApp version.
-    private final String WHATSAPP_USER_AGENT = "WhatsApp/2.13.21 S40Version/14.26 Device/Nokia302";// User agent used in request/registration code.
+    private final String WHATSAPP_DEVICE = "armani";                      // The device name.
+    private final String WHATSAPP_VER = "2.12.391";                // The WhatsApp version.
+    private final String WHATSAPP_USER_AGENT = "WhatsApp/2.12.391 Android/4.3 Device/Xiaomi";// User agent used in request/registration code.
     private final String WHATSAPP_VER_CHECKER = "https://coderus.openrepos.net/whitesoft/whatsapp_version"; // Check WhatsApp version
 
     private final Logger log = LoggerFactory.getLogger(WhatsApi.class);
@@ -2274,6 +2274,13 @@ public class WhatsApi {
         sendNode(node);
     }
 
+    /**
+     * XXX
+     * Aqui as mensagens são processadas/disparadas...
+     * @param node
+     * @throws IOException
+     * @throws WhatsAppException
+     */
     private void processMessage(ProtocolNode node) throws IOException, WhatsAppException {
         log.debug("processMessage:");
         messageQueue.add(node);
